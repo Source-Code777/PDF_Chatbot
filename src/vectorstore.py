@@ -7,6 +7,7 @@ def create_vectorstore(chunks):
     )
     vectorstore=Chroma.from_documents(
         documents=chunks,
-        embedding=embedding
+        embedding=embedding,
+        persist_directory="db"
     )
     return vectorstore
