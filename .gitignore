@@ -1,4 +1,30 @@
-db/
-__pycache__/
+# Python
+
+**pycache**/
 *.pyc
+*.pyo
+*.pyd
+
+# Virtual env
+
 .venv/
+env/
+
+# Vector DB
+
+db/
+db_sessions/
+
+# OS
+
+.DS_Store
+Thumbs.db
+
+# IDE
+
+.idea/
+.vscode/
+
+# Logs
+
+*.log
