@@ -1,5 +1,5 @@
 from utils.helpers import generate_query_variations
-from eval_dataset import evaluation_data
+from src.eval_dataset import evaluation_data
 
 def is_relevant(doc, keywords):
     content = doc.page_content.lower()

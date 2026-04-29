@@ -22,23 +22,20 @@ User question: {query}
         if clean:
             variations.append(clean)
 
+    # ensure original query is always included
     variations.append(query)
+
+    # remove duplicates
     return list(set(variations))
 
-from textblob import TextBlob
-def correct_spelling(query):
-    try:
-        blob = TextBlob(query)
-        return str(blob.correct())
-    except:
-        return query
 
 def clean_query(query):
     return " ".join(query.strip().lower().split())
 
+
 def enrich_query(query, chat_history):
-    query = correct_spelling(query)
-    query = " ".join(query.strip().lower().split())
+    # normalize query (no spell correction anymore)
+    query = clean_query(query)
 
     if not chat_history:
         return query
@@ -46,16 +43,18 @@ def enrich_query(query, chat_history):
     pronouns = {"it", "this", "that", "they", "them", "its", "those"}
     words = set(query.split())
 
+    # if no pronouns → no need to modify
     if not words.intersection(pronouns):
         return query
 
+    # avoid over-expanding long queries
     if len(query.split()) > 6:
         return query
 
+    # attach previous user query for context
     for role, msg in reversed(chat_history):
         if role == "user":
-            last = correct_spelling(msg)
-            last = " ".join(last.strip().lower().split())
+            last = clean_query(msg)
             return last + " " + query
 
     return query

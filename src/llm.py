@@ -5,12 +5,17 @@ from langchain_core.prompts import PromptTemplate
 def get_llm():
     return Ollama(
         model="mistral:7b-instruct",
+        base_url="http://host.docker.internal:11434",
         temperature=0.0
     )
 
 
 def get_eval_llm():
-    return Ollama(model="mistral:7b-instruct", temperature=0.0)
+    return Ollama(
+        model="mistral:7b-instruct",
+        base_url="http://host.docker.internal:11434",
+        temperature=0.0
+    )
 
 
 def format_chat_history(chat_history):
@@ -34,11 +39,9 @@ def generate_answer(llm, query, context, chat_history):
 
     RULES:
     - Use the provided context to answer the question.
-    - Do NOT use outside knowledge.
-    - If the context contains relevant information, answer using it.
-    - If the context does NOT contain the answer, respond with:
-      "I don't know based on the provided document."
-    - Do NOT guess if the answer is completely missing.
+    - Try your best to answer using the context, even if the information is partial.
+    - If the context contains related information, form a reasonable answer from it.
+    - Only say "I don't know based on the provided document" if the context is completely unrelated.
 
     ANSWER STYLE:
     - Explain clearly in 2–4 sentences.

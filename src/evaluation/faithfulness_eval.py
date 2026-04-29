@@ -1,6 +1,6 @@
-from utils.helpers import generate_query_variations
-from llm import generate_answer
-from answer_eval_dataset import answer_eval_data
+from src.utils.helpers import generate_query_variations
+from src.llm import generate_answer
+from src.answer_eval_dataset import answer_eval_data
 
 def run_faithfulness_evaluation(vectorstore, reranker, llm, eval_llm):
     retriever = vectorstore.as_retriever(search_kwargs={"k": 10})

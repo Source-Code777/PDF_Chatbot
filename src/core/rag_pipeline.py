@@ -1,40 +1,47 @@
-def run_rag(query, vectorstore, llm, reranker, chat_history=None):
-    from utils.helpers import generate_query_variations, enrich_query
-    from llm import generate_answer
+def run_rag(query, vectorstore, llm, reranker, bm25, chat_history=None):
+    from src.utils.helpers import generate_query_variations, enrich_query
+    from src.llm import generate_answer
 
     chat_history = chat_history if chat_history is not None else []
 
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 12})
+    retriever = vectorstore.as_retriever(search_kwargs={"k": 15})
 
     query = enrich_query(query, chat_history)
 
-    queries = [query]
     try:
-        variations = generate_query_variations(llm, query)
-        for v in variations:
-            if v not in queries:
-                queries.append(v)
-            if len(queries) >= 3:
-                break
+        queries = generate_query_variations(llm, query)[:5]
     except:
-        pass
+        queries = [query]
+
+    if query not in queries:
+        queries.append(query)
 
     all_docs = []
-    for q in queries:
-        all_docs.extend(retriever.invoke(q))
-
     seen = set()
-    unique_docs = []
-    for doc in all_docs:
-        key = doc.page_content[:200]
-        if key not in seen:
-            unique_docs.append(doc)
-            seen.add(key)
 
-    if not unique_docs:
+    for q in queries:
+        dense_docs = retriever.invoke(q)
+        sparse_docs = bm25.retrieve(q, top_k=5)
+
+        for doc in dense_docs + sparse_docs:
+            key = doc.page_content[:150]
+            if key not in seen:
+                all_docs.append(doc)
+                seen.add(key)
+
+    if not all_docs:
         return "I don't know based on the provided document.", "", []
 
-    prefiltered = unique_docs[:8]
+    query_words = query.lower().split()
+
+    scored = []
+    for doc in all_docs:
+        content = doc.page_content.lower()
+        score = sum(1 for word in query_words if word in content)
+        scored.append((score, doc))
+
+    scored.sort(key=lambda x: x[0], reverse=True)
+    prefiltered = [doc for _, doc in scored[:12]]
 
     results = reranker.rerank(query, prefiltered, top_k=3)
 

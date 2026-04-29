@@ -1,6 +1,6 @@
-from answer_eval_dataset import answer_eval_data
-from answer_eval_prompt import EVAL_PROMPT
-from llm import generate_answer, get_eval_llm
+from src.answer_eval_dataset import answer_eval_data
+from src.answer_eval_prompt import EVAL_PROMPT
+from src.llm import generate_answer, get_eval_llm
 from utils.helpers import generate_query_variations
 
 def run_answer_evaluation(vectorstore, reranker, llm):

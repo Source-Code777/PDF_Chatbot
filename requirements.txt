@@ -1,9 +1,11 @@
+streamlit
 langchain
 langchain-community
 langchain-text-splitters
 chromadb
 sentence-transformers
 pypdf
-langchain_huggingface
+langchain-huggingface
 transformers
 torch
+rank-bm25

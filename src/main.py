@@ -1,30 +1,42 @@
 import os
 from collections import deque
 
-from core.rag_pipeline import run_rag
-from loader import load_pdf
-from splitter import split_documents
-from vectorstore import create_vectorstore, load_existing_vectorstore
-from llm import get_llm, get_eval_llm
-from reranker import CrossEncoderReranker
+from retrieval.bm25 import BM25Retriever
 
-from evaluation.retrieval_eval import run_retrieval_evaluation
-from evaluation.answer_eval import run_answer_evaluation
-from evaluation.faithfulness_eval import run_faithfulness_evaluation
+from src.core.rag_pipeline import run_rag
+from src.loader import load_pdf
+from src.splitter import split_documents
+from src.vectorstore import create_vectorstore, load_existing_vectorstore
+from src.llm import get_llm, get_eval_llm
+from src.reranker import CrossEncoderReranker
 
-DB_DIR = "db"
+from src.evaluation.retrieval_eval import run_retrieval_evaluation
+from src.evaluation.answer_eval import run_answer_evaluation
+from src.evaluation.faithfulness_eval import run_faithfulness_evaluation
+
+DATA_DIR = "data"
+
 
 def main():
     path = r"C:\Users\aasim\OneDrive\Desktop\Notes\NLP\cs224n_winter2023_lecture1_notes_draft.pdf"
 
-    if os.path.exists(DB_DIR):
+    pdf_name = os.path.basename(path).replace(".pdf", "")
+    pdf_dir = os.path.join(DATA_DIR, pdf_name)
+    db_dir = os.path.join(pdf_dir, "vectordb")
+
+    os.makedirs(pdf_dir, exist_ok=True)
+
+    docs = load_pdf(path)
+    chunks = split_documents(docs)
+
+    if os.path.exists(db_dir):
         print("Loading vectorstore...")
-        vectorstore = load_existing_vectorstore()
+        vectorstore = load_existing_vectorstore(db_dir)
     else:
         print("Creating vectorstore...")
-        docs = load_pdf(path)
-        chunks = split_documents(docs)
-        vectorstore = create_vectorstore(chunks)
+        vectorstore = create_vectorstore(chunks, db_dir)
+
+    bm25 = BM25Retriever(chunks)
 
     llm = get_llm()
     eval_llm = get_eval_llm()
@@ -50,7 +62,12 @@ def main():
             break
 
         answer, context, docs = run_rag(
-            query, vectorstore, llm, reranker, chat_history
+            query,
+            vectorstore,
+            llm,
+            reranker,
+            bm25,
+            chat_history
         )
 
         print("\n--- Final Answer ---\n")
