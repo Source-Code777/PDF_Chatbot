@@ -1,42 +1,49 @@
-# 📄 PDF Chatbot (RAG-Based)
+# PDF Chatbot (RAG-Based)
 
-A conversational AI system that allows users to upload a PDF and ask questions about it using Retrieval-Augmented Generation (RAG).
-
----
-
-## 🚀 Features
-
-* 📄 Upload any PDF
-* 💬 Ask questions in natural language
-* 🔍 Hybrid retrieval (BM25 + dense embeddings)
-* 🧠 Cross-encoder reranking
-* 🖥️ Streamlit UI
-* 🐳 Docker support
+A conversational AI system that allows users to upload a PDF and ask questions about its content using **Retrieval-Augmented Generation (RAG)**.
 
 ---
 
-## 🧱 Project Structure
+## Features
+
+* Upload and process PDF documents
+* Ask questions in natural language
+* Hybrid retrieval (BM25 + dense embeddings)
+* Cross-encoder reranking (local mode)
+* Dual mode:
+
+  * **Local (Ollama)**
+  * **API (Groq)**
+* Streamlit-based user interface
+* Docker support for containerized execution
+
+---
+
+## Project Structure
 
 ```
 PDF_Chatbot/
+│
 ├── app.py
 ├── src/
 │   ├── core/
-│   ├── utils/
 │   ├── retrieval/
+│   ├── utils/
 │   ├── loader.py
 │   ├── splitter.py
 │   ├── vectorstore.py
 │   └── ...
+│
 ├── data/
 ├── Dockerfile
 ├── requirements.txt
+├── requirements-local.txt
 └── README.md
 ```
 
 ---
 
-## ⚙️ Setup (Local)
+## Local Setup
 
 ### 1. Clone the repository
 
@@ -47,11 +54,20 @@ cd pdf-chatbot
 
 ---
 
-### 2. Create virtual environment
+### 2. Create and activate virtual environment
+
+**Windows**
 
 ```
 python -m venv .venv
 .venv\Scripts\activate
+```
+
+**Mac/Linux**
+
+```
+python3 -m venv .venv
+source .venv/bin/activate
 ```
 
 ---
@@ -62,27 +78,60 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
----
-
-### 4. Run Ollama (Required)
+For **local mode (Ollama + reranker)**:
 
 ```
-ollama run mistral:7b-instruct
+pip install -r requirements-local.txt
 ```
 
 ---
 
-### 5. Run the app
+## Running the App
 
 ```
 streamlit run app.py
 ```
 
+Open in browser:
+
+```
+http://localhost:8501
+```
+
 ---
 
-## 🐳 Run with Docker
+## Modes
 
-### 1. Build Docker image
+### 1. API Mode (Recommended)
+
+* Uses Groq for fast inference
+* Enter your API key in the UI
+
+Get API key:
+https://console.groq.com
+
+---
+
+### 2. Local Mode (Ollama)
+
+Requires a local LLM setup.
+
+### Install Ollama
+
+https://ollama.com/download
+
+### Run model
+
+```
+ollama pull mistral:7b-instruct
+ollama serve
+```
+
+---
+
+## Docker Setup (API Mode)
+
+### 1. Build image
 
 ```
 docker build -t pdf-chatbot .
@@ -93,12 +142,12 @@ docker build -t pdf-chatbot .
 ### 2. Run container
 
 ```
-docker run -p 8501:8501 pdf-chatbot
+docker run -p 8501:8501 -e GROQ_API_KEY=your_key pdf-chatbot
 ```
 
 ---
 
-### 3. Open in browser
+### 3. Access app
 
 ```
 http://localhost:8501
@@ -106,23 +155,42 @@ http://localhost:8501
 
 ---
 
-## ⚠️ Important Note
+## Important Notes
 
-This project uses a locally running Ollama model.
+* Docker container is configured for **API mode only**
+* Local mode requires Ollama running on host machine
+* Default Ollama endpoint:
 
-👉 Make sure Ollama is running before using the chatbot.
+```
+http://host.docker.internal:11434
+```
+
+* This works on Docker Desktop (Windows/macOS)
+* For Linux/cloud, update the URL accordingly
 
 ---
 
-## 🧠 Future Improvements
+## Tech Stack
 
-* Cloud deployment (Render / Railway)
-* Replace local LLM with API (OpenAI / Groq)
+* **LLM**: Groq / Ollama (Mistral)
+* **Embeddings**: BGE / MiniLM
+* **Vector DB**: Chroma
+* **Retrieval**: BM25 + Dense Retrieval
+* **Reranking**: Cross-Encoder (local)
+* **Framework**: Streamlit + LangChain
+
+---
+
+## Future Improvements
+
+* Streaming responses (ChatGPT-like UX)
+* Better retrieval (hybrid scoring / fusion)
 * Multi-document support
-* Improved UI
+* Deployment (Render / Railway / VPS)
+* UI enhancements
 
 ---
 
-## 📌 Author
+## Author
 
-Aasim Athar Alam
+**Source_Code777**

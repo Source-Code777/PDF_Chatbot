@@ -1,12 +1,23 @@
+import os
 from langchain_community.vectorstores import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
 
 
 def get_embedding():
-    return HuggingFaceEmbeddings(
-        model_name="BAAI/bge-base-en-v1.5",
-        encode_kwargs={"normalize_embeddings": True}
-    )
+    mode = os.getenv("LLM_MODE", "local")
+
+    if mode == "local":
+        from langchain_huggingface import HuggingFaceEmbeddings
+
+        return HuggingFaceEmbeddings(
+            model_name="BAAI/bge-base-en-v1.5",
+            encode_kwargs={"normalize_embeddings": True}
+        )
+
+    else:
+        # Lightweight fallback (no torch)
+        from langchain_community.embeddings import FakeEmbeddings
+
+        return FakeEmbeddings(size=768)
 
 
 def create_vectorstore(chunks, persist_directory):

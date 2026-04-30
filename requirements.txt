@@ -3,9 +3,8 @@ langchain
 langchain-community
 langchain-text-splitters
 chromadb
-sentence-transformers
 pypdf
-langchain-huggingface
-transformers
-torch
 rank-bm25
+requests
+python-dotenv
+groq

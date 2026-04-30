@@ -2,12 +2,16 @@
 env/
 venv/
 
-data/
-db/
-
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 
 *.log
 
 .DS_Store
+
+.git
+.gitignore
+
+.cache/

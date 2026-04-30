@@ -1,19 +1,32 @@
-from src.answer_eval_dataset import answer_eval_data
-from src.answer_eval_prompt import EVAL_PROMPT
-from src.llm import generate_answer, get_eval_llm
-from utils.helpers import generate_query_variations
-
 def run_answer_evaluation(vectorstore, reranker, llm):
+    from src.answer_eval_dataset import answer_eval_data
+    from src.answer_eval_prompt import EVAL_PROMPT
+    from src.llm import generate_answer, get_eval_llm
+    from utils.helpers import generate_query_variations
+    import os
+    import re
+
     retriever = vectorstore.as_retriever(search_kwargs={"k": 10})
     scores = []
 
     eval_llm = get_eval_llm()
+    if eval_llm is None:
+        print("Evaluation LLM not available")
+        return
+
+    mode = os.getenv("LLM_MODE", "local")
 
     for item in answer_eval_data:
         query = item["query"]
         ground_truth = item["ground_truth"]
 
-        queries = generate_query_variations(llm, query)
+        if mode == "local":
+            try:
+                queries = generate_query_variations(llm, query)
+            except:
+                queries = [query]
+        else:
+            queries = [query]
 
         all_docs = []
         for q in queries:
@@ -23,7 +36,10 @@ def run_answer_evaluation(vectorstore, reranker, llm):
 
         results = reranker.rerank(query, unique_docs, top_k=3)
 
-        context = "\n\n---\n\n".join([doc.page_content for doc in results])
+        if not results:
+            results = unique_docs[:3]
+
+        context = "\n\n---\n\n".join([doc.page_content[:300] for doc in results[:3]])
 
         model_answer = generate_answer(llm, query, context, [])
 
@@ -38,6 +54,8 @@ def run_answer_evaluation(vectorstore, reranker, llm):
         print(f"\nQuery: {query}")
         print(eval_response)
 
-        scores.append(1 if "Score: 1" in eval_response else 0)
+        match = re.search(r"score\s*:\s*(\d)", eval_response.lower())
+        score = int(match.group(1)) if match else 0
+        scores.append(score)
 
     print("\nFinal Accuracy:", sum(scores) / len(scores))
